@@ -31,6 +31,19 @@ export default class PanAnZoom {
         this.initialTranslateY = 0;
         this.initialClientX = 0;
         this.initialClientY = 0;
+
+        /** @type {Array<[Window|HTMLElement, String, Function]>} */
+        this.eventListeners = [];
+
+        this.registerEventListeners();
+    }
+
+    // noinspection JSUnusedGlobalSymbols
+    /**
+     * Should be called when this object is no longer needed, so used resources are properly released.
+     */
+    close() {
+        this.unregisterAllEventListeners();
     }
 
     /**
@@ -218,26 +231,43 @@ export default class PanAnZoom {
         this.transformCallback(this.ctx, this.scale, this.translateX, this.translateY);
     }
 
+    registerEventListeners() {
+        this.registerEventListener(this.canvasElement, "mousedown", this.onMouseDown.bind(this));
+        // listen on window because we want to be able to keep panning even outside of our element area
+        this.registerEventListener(window, "mouseup", this.onMouseUp.bind(this));
+        this.registerEventListener(window, "mousemove", this.onMouseMove.bind(this));
+
+        this.registerEventListener(this.canvasElement, "touchstart", this.onTouchStart.bind(this));
+        // for some reason, touch move and end seem to work fine out of the element even if you register them *in* it
+        this.registerEventListener(this.canvasElement, "touchend", this.onTouchEnd.bind(this));
+        this.registerEventListener(this.canvasElement, "touchcancel", this.onTouchEnd.bind(this));
+        this.registerEventListener(this.canvasElement, "touchmove", this.onTouchMove.bind(this));
+
+        this.registerEventListener(this.canvasElement, "wheel", this.onWheel.bind(this));
+    }
+
+    /**
+     * @param {Window|HTMLElement} element
+     * @param {String} eventName
+     * @param {Function} callback
+     */
+    registerEventListener(element, eventName, callback) {
+        element.addEventListener(eventName, callback);
+        this.eventListeners.push([element, eventName, callback]);
+    }
+
+    unregisterAllEventListeners() {
+        for (const [element, eventName, callback] of this.eventListeners) {
+            element.removeEventListener(eventName, callback);
+        }
+    }
+
     /**
      * @param {HTMLCanvasElement} canvasElement
      * @param {Function} transformCallback
+     * @return {PanAnZoom}
      */
     static apply(canvasElement, transformCallback) {
-        const instance = new PanAnZoom(canvasElement, transformCallback);
-
-        // ToDo remember to save every listener here and then create a method to remove them whenever wanted
-
-        canvasElement.addEventListener("mousedown", instance.onMouseDown.bind(instance));
-        // listen on window because we want to be able to keep panning even outside of our element area
-        window.addEventListener("mouseup", instance.onMouseUp.bind(instance));
-        window.addEventListener("mousemove", instance.onMouseMove.bind(instance));
-
-        canvasElement.addEventListener("touchstart", instance.onTouchStart.bind(instance));
-        // for some reason, touch move and end seem to work fine out of the element even if you register them *in* it
-        canvasElement.addEventListener("touchend", instance.onTouchEnd.bind(instance));
-        canvasElement.addEventListener("touchcancel", instance.onTouchEnd.bind(instance));
-        canvasElement.addEventListener("touchmove", instance.onTouchMove.bind(instance));
-
-        canvasElement.addEventListener("wheel", instance.onWheel.bind(instance));
+        return new PanAnZoom(canvasElement, transformCallback);
     }
 }
