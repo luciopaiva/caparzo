@@ -230,6 +230,7 @@ export default class PanAnZoom {
         canvasElement.addEventListener("touchstart", instance.onTouchStart.bind(instance));
         // for some reason, touch move and end seem to work fine out of the element even if you register them *in* it
         canvasElement.addEventListener("touchend", instance.onTouchEnd.bind(instance));
+        canvasElement.addEventListener("touchcancel", instance.onTouchEnd.bind(instance));
         canvasElement.addEventListener("touchmove", instance.onTouchMove.bind(instance));
 
         canvasElement.addEventListener("wheel", instance.onWheel.bind(instance));
