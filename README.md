@@ -58,24 +58,35 @@ Place the mouse at the left edge now. In the previous section, scaling centered 
 Once again, every intermediate point will need to be interpolated. Here's the updated formula:
 
     translationDueToMousePosition = mouseX * (1 - scalingFactor);
-    translationDueToCroppedPart = previousTranslationX * scalingFactor;
-    translateX = translationDueToMousePosition + translationDueToCroppedPart
+    translationDueToCroppedPart = previousTranslateX * scalingFactor;
+    translateX = translationDueToMousePosition + translationDueToCroppedPart;
 
 Or, refactoring it a bit:
 
-    translateX = (previousTranslationX - mouseX) * scalingFactor + mouseX
+    translateX = (previousTranslateX - mouseX) * scalingFactor + mouseX;
+
+So there you have it. That's all you need for scaling in one dimension. Now for two dimensions is ridiculously simple: just use the same formula separately for the y axis :-)
 
 ## Touch events
 
 ### Pinch
 
-Things to write about:
+Scaling via pinching is almost exactly the same idea. The scaling pivot point is still there, although it is now not a mouse pointer, but the mean point between the two fingers doing the pinch gesture. The scaling factor is obviously also there, but it's now the difference in distance between the two fingers while the pinch gesture happens.
 
-- how the scaling factor is computed by comparing initial finger distance against current one
-- how we should consider only the initial mean point and scale around it; scaling around the *current* mean point does not work well (and that is what EasyPZ seems to do)
-- how to pan while pinching: if we keep the distance between the two fingers constant and move them together, we should be able to pan (that's how Google Maps does it)
-- explain how the "touchmove" event fires repeatedly, even if the fingers are not moving... so it's easier to calculate things based on the moment "touchstart" happened
+There is a small thing to note about the pivot point, however. It should not be updated while the gesture is being performed. Try it yourself. Notice that the final result doesn't seem natural; it is not exactly what you would expect. So you must save the initial mean point and use it for all `touchmove` events that follow.
 
-## Future things to implement
+And, about `touchmove` events, beware that they happen a lot, even if the fingers are not moving. So just a heads up that you should keep your handler as light as possible.
 
-- optionally ease movement
+So here's the formula so far:
+
+    translateX = (initialTranslateX - initialPinchX) * scalingFactor + initialPinchX;
+
+But there's one last thing: open Google Maps and notice that while you're zooming in and out the map using the pinch gesture, you are also able to *pan* the map. It would be nice to be able to do that as well. The change needed is really easy: you just have to track how the mean point moved since the gesture started. The initial mean point you already have; now you just need to calculate it also every time a `touchmove` event happens. Take the difference between the last measure made and the initial one and you have you panning delta. Then just add that to your formula:
+
+    translateX = (initialTranslateX - initialPinchX) * scalingFactor + initialPinchX + (pinchX - initialPinchX);
+
+Notice that you can simplify it a bit:
+
+    translateX = (initialTranslateX - initialPinchX) * scalingFactor + pinchX;
+
+And that's it! That's your formula for scaling using the pinch gesture.
