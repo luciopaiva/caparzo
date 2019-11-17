@@ -16,6 +16,7 @@ export default class PanAnZoom {
         this.transformCallback = transformCallback;
 
         this.isPanning = false;
+        this.isPinching = false;
 
         this.scale = 1;
         this.translateX = 0;
@@ -23,6 +24,13 @@ export default class PanAnZoom {
 
         this.previousClientX = 0;
         this.previousClientY = 0;
+
+        this.initialPinchDistance = 0;
+        this.initialScale = 0;
+        this.initialTranslateX = 0;
+        this.initialTranslateY = 0;
+        this.initialClientX = 0;
+        this.initialClientY = 0;
     }
 
     /**
@@ -53,7 +61,12 @@ export default class PanAnZoom {
      */
     onTouchStart(event) {
         event.preventDefault();
-        if (event.touches.length === 1) {
+        if (event.touches.length === 2) {
+            if (this.isPanning) {
+                this.panEnd();
+            }
+            this.pinchStart(event);
+        } else if (event.touches.length === 1) {
             const touch = event.touches[0];
             this.panStart(touch.clientX, touch.clientY);
         }
@@ -64,7 +77,11 @@ export default class PanAnZoom {
      */
     onTouchEnd(event) {
         event.preventDefault();
-        this.panEnd();
+        if (this.isPanning) {
+            this.panEnd();
+        } else if (this.isPinching) {
+            this.pinchEnd();
+        }
     }
 
     /**
@@ -75,7 +92,76 @@ export default class PanAnZoom {
         if (this.isPanning) {
             const touch = event.touches[0];
             this.panMove(touch.clientX, touch.clientY);
+        } else if (this.isPinching) {
+            this.pinchMove(event);
         }
+    }
+
+    /**
+     * @param {TouchEvent} event
+     */
+    pinchStart(event) {
+        this.isPinching = true;
+        this.initialPinchDistance = this.computePinchDistance(event);
+        this.initialScale = this.scale;
+        this.initialTranslateX = this.translateX;
+        this.initialTranslateY = this.translateY;
+        [this.initialClientX, this.initialClientY] = this.computeMeanTouchPoint(event);
+    }
+
+    pinchEnd() {
+        this.isPinching = false;
+    }
+
+    /**
+     * @param {TouchEvent} event
+     */
+    pinchMove(event) {
+        const distance = this.computePinchDistance(event);
+        const scalingFactor = distance / this.initialPinchDistance;
+        const [clientX, clientY] = this.computeMeanTouchPoint(event);
+
+        const previousScale = this.scale;
+        this.scale = this.initialScale * scalingFactor;
+
+        // ToDo these constraints should be configurable/toggleable
+        if (this.scale > MAXIMUM_SCALE) {
+            this.scale = MAXIMUM_SCALE;
+        } else if (this.scale < MINIMUM_SCALE) {
+            this.scale = MINIMUM_SCALE;
+        }
+
+        if (this.scale !== previousScale) {  // avoid translating if has no effective scaling
+            this.translateX = (this.initialTranslateX - this.initialClientX) * scalingFactor + this.initialClientX + clientX - this.initialClientX;
+            this.translateY = (this.initialTranslateY - this.initialClientY) * scalingFactor + this.initialClientY + clientY - this.initialClientY;
+        }
+
+        // ToDo check if translation/scaling is the same as the previous state and avoid firing the callback if so
+        this.transform();
+    }
+
+    /**
+     * @param {TouchEvent} event
+     * @return {[Number, Number]}
+     */
+    computeMeanTouchPoint(event) {
+        const touch1 = event.touches[0];
+        const touch2 = event.touches[1];
+        const hor = touch1.clientX + (touch2.clientX - touch1.clientX) / 2;
+        const ver = touch1.clientY + (touch2.clientY - touch1.clientY) / 2;
+        return [hor, ver];
+    }
+
+    /**
+     * @param {TouchEvent} event
+     * @return {Number}
+     */
+    computePinchDistance(event) {
+        const touch1 = event.touches[0];
+        const touch2 = event.touches[1];
+        const hor = touch2.clientX - touch1.clientX;
+        const ver = touch2.clientY - touch1.clientY;
+        return Math.hypot(hor, ver);
     }
 
     /**
