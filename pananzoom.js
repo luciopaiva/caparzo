@@ -15,7 +15,7 @@ export default class PanAnZoom {
         this.ctx = /** @type {CanvasRenderingContext2D} */ this.canvasElement.getContext("2d");
         this.transformCallback = transformCallback;
 
-        this.isMouseDown = false;
+        this.isPanning = false;
 
         this.scale = 1;
         this.translateX = 0;
@@ -25,27 +25,79 @@ export default class PanAnZoom {
         this.previousClientY = 0;
     }
 
+    /**
+     * @param {MouseEvent} event
+     */
     onMouseDown(event) {
-        this.isMouseDown = true;
-        this.previousClientX = event.clientX;
-        this.previousClientY = event.clientY;
+        this.panStart(event.clientX, event.clientY);
     }
 
-    onMouseUp() {
-        this.isMouseDown = false;
+    /**
+     * @param {MouseEvent} event
+     */
+    onMouseUp(event) {
+        this.panEnd();
     }
 
     /**
      * @param {MouseEvent} event
      */
     onMouseMove(event) {
-        if (this.isMouseDown) {
-            this.translateX += event.clientX - this.previousClientX;
-            this.translateY += event.clientY - this.previousClientY;
-            this.previousClientX = event.clientX;
-            this.previousClientY = event.clientY;
-            this.transform();
+        if (this.isPanning) {
+            this.panMove(event.clientX, event.clientY);
         }
+    }
+
+    /**
+     * @param {TouchEvent} event
+     */
+    onTouchStart(event) {
+        event.preventDefault();
+        if (event.touches.length === 1) {
+            const touch = event.touches[0];
+            this.panStart(touch.clientX, touch.clientY);
+        }
+    }
+
+    /**
+     * @param {TouchEvent} event
+     */
+    onTouchEnd(event) {
+        event.preventDefault();
+        this.panEnd();
+    }
+
+    /**
+     * @param {TouchEvent} event
+     */
+    onTouchMove(event) {
+        event.preventDefault();
+        if (this.isPanning) {
+            const touch = event.touches[0];
+            this.panMove(touch.clientX, touch.clientY);
+        }
+    }
+
+    /**
+     * @param {Number} clientX
+     * @param {Number} clientY
+     */
+    panStart(clientX, clientY) {
+        this.isPanning = true;
+        this.previousClientX = clientX;
+        this.previousClientY = clientY;
+    }
+
+    panEnd() {
+        this.isPanning = false;
+    }
+
+    panMove(clientX, clientY) {
+        this.translateX += clientX - this.previousClientX;
+        this.translateY += clientY - this.previousClientY;
+        this.previousClientX = clientX;
+        this.previousClientY = clientY;
+        this.transform();
     }
 
     /**
@@ -81,9 +133,19 @@ export default class PanAnZoom {
      */
     static apply(canvasElement, transformCallback) {
         const instance = new PanAnZoom(canvasElement, transformCallback);
+
+        // ToDo remember to save every listener here and then create a method to remove them whenever wanted
+
         canvasElement.addEventListener("mousedown", instance.onMouseDown.bind(instance));
-        canvasElement.addEventListener("mouseup", instance.onMouseUp.bind(instance));
-        canvasElement.addEventListener("mousemove", instance.onMouseMove.bind(instance));
+        // listen on window because we want to be able to keep panning even outside of our element area
+        window.addEventListener("mouseup", instance.onMouseUp.bind(instance));
+        window.addEventListener("mousemove", instance.onMouseMove.bind(instance));
+
+        canvasElement.addEventListener("touchstart", instance.onTouchStart.bind(instance));
+        // for some reason, touch move and end seem to work fine out of the element even if you register them *in* it
+        canvasElement.addEventListener("touchend", instance.onTouchEnd.bind(instance));
+        canvasElement.addEventListener("touchmove", instance.onTouchMove.bind(instance));
+
         canvasElement.addEventListener("wheel", instance.onWheel.bind(instance));
     }
 }
