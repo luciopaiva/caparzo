@@ -9,11 +9,16 @@ export default class PanAnZoom {
     /**
      * @param {HTMLCanvasElement} canvasElement
      * @param {Function} transformCallback
+     * @param {Number} [minimumScale]
+     * @param {Number} [maximumScale]
      */
-    constructor (canvasElement, transformCallback) {
+    constructor (canvasElement, transformCallback, minimumScale = MINIMUM_SCALE, maximumScale = MAXIMUM_SCALE) {
         this.canvasElement = canvasElement;
         this.ctx = /** @type {CanvasRenderingContext2D} */ this.canvasElement.getContext("2d");
         this.transformCallback = transformCallback;
+
+        this.minimumScale = minimumScale;
+        this.maximumScale = maximumScale;
 
         this.isPanning = false;
         this.isPinching = false;
@@ -137,11 +142,10 @@ export default class PanAnZoom {
         const previousScale = this.scale;
         this.scale = this.initialScale * scalingFactor;
 
-        // ToDo these constraints should be configurable/toggleable
-        if (this.scale > MAXIMUM_SCALE) {
-            this.scale = MAXIMUM_SCALE;
-        } else if (this.scale < MINIMUM_SCALE) {
-            this.scale = MINIMUM_SCALE;
+        if (this.scale > this.maximumScale) {
+            this.scale = this.maximumScale;
+        } else if (this.scale < this.minimumScale) {
+            this.scale = this.minimumScale;
         }
 
         if (this.scale !== previousScale) {  // avoid translating if has no effective scaling
@@ -213,10 +217,10 @@ export default class PanAnZoom {
         const previousScale = this.scale;
         this.scale *= scalingFactor;
 
-        if (this.scale > MAXIMUM_SCALE) {
-            this.scale = MAXIMUM_SCALE;
-        } else if (this.scale < MINIMUM_SCALE) {
-            this.scale = MINIMUM_SCALE;
+        if (this.scale > this.maximumScale) {
+            this.scale = this.maximumScale;
+        } else if (this.scale < this.minimumScale) {
+            this.scale = this.minimumScale;
         }
 
         if (this.scale !== previousScale) {  // avoid translating if has no effective scaling
@@ -265,9 +269,11 @@ export default class PanAnZoom {
     /**
      * @param {HTMLCanvasElement} canvasElement
      * @param {Function} transformCallback
+     * @param {Number} [minimumScale]
+     * @param {Number} [maximumScale]
      * @return {PanAnZoom}
      */
-    static apply(canvasElement, transformCallback) {
-        return new PanAnZoom(canvasElement, transformCallback);
+    static apply(canvasElement, transformCallback, minimumScale, maximumScale) {
+        return new PanAnZoom(canvasElement, transformCallback, minimumScale, maximumScale);
     }
 }
