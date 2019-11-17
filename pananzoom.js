@@ -196,9 +196,9 @@ export default class PanAnZoom {
         //      when doing it, change this logic to calculate against the initial values when the mouse down event
         //      happened (the touch method needs it this way)
         const delta = Math.sign(event.deltaY);
-        const scaleDelta = delta > 0 ? SCALE_DOWN_FACTOR : SCALE_UP_FACTOR;
+        const scalingFactor = delta > 0 ? SCALE_DOWN_FACTOR : SCALE_UP_FACTOR;
         const previousScale = this.scale;
-        this.scale *= scaleDelta;
+        this.scale *= scalingFactor;
 
         if (this.scale > MAXIMUM_SCALE) {
             this.scale = MAXIMUM_SCALE;
@@ -207,8 +207,8 @@ export default class PanAnZoom {
         }
 
         if (this.scale !== previousScale) {  // avoid translating if has no effective scaling
-            this.translateX = (this.translateX - event.clientX) * scaleDelta + event.clientX;
-            this.translateY = (this.translateY - event.clientY) * scaleDelta + event.clientY;
+            this.translateX = (this.translateX - event.clientX) * scalingFactor + event.clientX;
+            this.translateY = (this.translateY - event.clientY) * scalingFactor + event.clientY;
         }
 
         this.transform();
