@@ -190,6 +190,11 @@ export default class PanAnZoom {
      * @param {WheelEvent} event
      */
     onWheel(event) {
+        event.preventDefault();
+
+        // ToDo refactor the code below and extract it so it also works for the pinch method
+        //      when doing it, change this logic to calculate against the initial values when the mouse down event
+        //      happened (the touch method needs it this way)
         const delta = Math.sign(event.deltaY);
         const scaleDelta = delta > 0 ? SCALE_DOWN_FACTOR : SCALE_UP_FACTOR;
         const previousScale = this.scale;
