@@ -1,5 +1,5 @@
 
-# Lean Pan & Zoom Canvas Library
+# Caparzo.js
 
 I wrote this library for two main reasons: first, I use panning & zooming a lot in my projects. Second, I wanted to do it right, with easy-to-read formulas that anyone else could understand and also use it in their own projects in a portable way.
 
