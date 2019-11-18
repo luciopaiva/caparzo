@@ -1,5 +1,5 @@
 
-import Caparzo from "./caparzo.js";
+import Caparzo from "../caparzo.js";
 
 const TAU = Math.PI * 2;
 
