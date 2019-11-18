@@ -293,6 +293,8 @@ export default class Caparzo {
      * @return {Caparzo}
      */
     static apply(canvasElement, transformCallback, minimumScale, maximumScale) {
-        return new Caparzo(canvasElement, transformCallback, minimumScale, maximumScale);
+        const instance = new Caparzo(canvasElement, transformCallback, minimumScale, maximumScale);
+        instance.transform();
+        return instance;
     }
 }
