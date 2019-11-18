@@ -19,13 +19,14 @@ class Example {
     }
 
     /**
-     * @param {CanvasRenderingContext2D} ctx
      * @param {Number} scale
      * @param {Number} translateX
      * @param {Number} translateY
+     * @param {CanvasRenderingContext2D} ctx
+     * @param {HTMLCanvasElement} canvas
      */
-    onCanvasRedraw(ctx, scale, translateX, translateY) {
-        ctx.clearRect(0, 0, this.width, this.height);
+    onCanvasRedraw(scale, translateX, translateY, ctx, canvas) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.save();
         ctx.transform(scale, 0, 0, scale, translateX, translateY);
         this.draw(ctx);

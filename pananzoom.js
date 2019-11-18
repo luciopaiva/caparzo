@@ -121,6 +121,7 @@ export default class PanAnZoom {
     pinchStart(event) {
         this.isPinching = true;
         this.initialPinchDistance = this.computePinchDistance(event);
+
         this.initialScale = this.scale;
         this.initialTranslateX = this.translateX;
         this.initialTranslateY = this.translateY;
@@ -139,22 +140,7 @@ export default class PanAnZoom {
         const scalingFactor = distance / this.initialPinchDistance;
         const [clientX, clientY] = this.computeMeanTouchPoint(event);
 
-        const previousScale = this.scale;
-        this.scale = this.initialScale * scalingFactor;
-
-        if (this.scale > this.maximumScale) {
-            this.scale = this.maximumScale;
-        } else if (this.scale < this.minimumScale) {
-            this.scale = this.minimumScale;
-        }
-
-        if (this.scale !== previousScale) {  // avoid translating if has no effective scaling
-            this.translateX = (this.initialTranslateX - this.initialClientX) * scalingFactor + this.initialClientX + clientX - this.initialClientX;
-            this.translateY = (this.initialTranslateY - this.initialClientY) * scalingFactor + this.initialClientY + clientY - this.initialClientY;
-        }
-
-        // ToDo check if translation/scaling is the same as the previous state and avoid firing the callback if so
-        this.transform();
+        this.doScaling(clientX, clientY, scalingFactor);
     }
 
     /**
@@ -209,13 +195,21 @@ export default class PanAnZoom {
     onWheel(event) {
         event.preventDefault();
 
-        // ToDo refactor the code below and extract it so it also works for the pinch method
-        //      when doing it, change this logic to calculate against the initial values when the mouse down event
-        //      happened (the touch method needs it this way)
         const delta = Math.sign(event.deltaY);
         const scalingFactor = delta > 0 ? SCALE_DOWN_FACTOR : SCALE_UP_FACTOR;
+
+        this.initialScale = this.scale;
+        this.initialTranslateX = this.translateX;
+        this.initialTranslateY = this.translateY;
+        this.initialClientX = event.clientX;
+        this.initialClientY = event.clientY;
+
+        this.doScaling(event.clientX, event.clientY, scalingFactor);
+    }
+
+    doScaling(clientX, clientY, scalingFactor) {
         const previousScale = this.scale;
-        this.scale *= scalingFactor;
+        this.scale = this.initialScale * scalingFactor;
 
         if (this.scale > this.maximumScale) {
             this.scale = this.maximumScale;
@@ -224,15 +218,16 @@ export default class PanAnZoom {
         }
 
         if (this.scale !== previousScale) {  // avoid translating if has no effective scaling
-            this.translateX = (this.translateX - event.clientX) * scalingFactor + event.clientX;
-            this.translateY = (this.translateY - event.clientY) * scalingFactor + event.clientY;
+            this.translateX = (this.initialTranslateX - this.initialClientX) * scalingFactor + clientX;
+            this.translateY = (this.initialTranslateY - this.initialClientY) * scalingFactor + clientY;
         }
 
+        // ToDo check if translation/scaling is the same as the previous state and avoid firing the callback if so
         this.transform();
     }
 
     transform() {
-        this.transformCallback(this.ctx, this.scale, this.translateX, this.translateY);
+        this.transformCallback(this.scale, this.translateX, this.translateY, this.ctx, this.canvasElement);
     }
 
     registerEventListeners() {
