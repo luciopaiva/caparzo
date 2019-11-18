@@ -6,8 +6,8 @@ const TAU = Math.PI * 2;
 class Example {
 
     constructor () {
-        this.width = 900;
-        this.height = 800;
+        this.width = 300;
+        this.height = 200;
 
         this.canvas = /** @type {HTMLCanvasElement} */ document.getElementById("canvas");
         this.canvas.width = this.width;
