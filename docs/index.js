@@ -22,7 +22,7 @@ class ImageExample {
 
     /** @return {void} */
     async initialize() {
-        this.img = await loadImage("pvt-ryan.jpg");
+        this.img = await loadImage("docs/pvt-ryan.jpg");
 
         this.canvas = /** @type {HTMLCanvasElement} */ document.getElementById("image-canvas");
         this.parent = this.canvas.parentElement;
