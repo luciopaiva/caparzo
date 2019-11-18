@@ -27,15 +27,15 @@ export default class Caparzo {
         this.translateX = 0;
         this.translateY = 0;
 
-        this.previousClientX = 0;
-        this.previousClientY = 0;
+        this.previousOffsetX = 0;
+        this.previousOffsetY = 0;
 
         this.initialPinchDistance = 0;
         this.initialScale = 0;
         this.initialTranslateX = 0;
         this.initialTranslateY = 0;
-        this.initialClientX = 0;
-        this.initialClientY = 0;
+        this.initialOffsetX = 0;
+        this.initialOffsetY = 0;
 
         /** @type {Array<[Window|HTMLElement, String, Function]>} */
         this.eventListeners = [];
@@ -55,7 +55,7 @@ export default class Caparzo {
      * @param {MouseEvent} event
      */
     onMouseDown(event) {
-        this.panStart(event.clientX, event.clientY);
+        this.panStart(event.offsetX, event.offsetY);
     }
 
     /**
@@ -70,7 +70,7 @@ export default class Caparzo {
      */
     onMouseMove(event) {
         if (this.isPanning) {
-            this.panMove(event.clientX, event.clientY);
+            this.panMove(event.offsetX, event.offsetY);
         }
     }
 
@@ -86,8 +86,28 @@ export default class Caparzo {
             this.pinchStart(event);
         } else if (event.touches.length === 1) {
             const touch = event.touches[0];
-            this.panStart(touch.clientX, touch.clientY);
+            const offsetX = this.obtainTouchOffsetX(touch);
+            const offsetY = this.obtainTouchOffsetY(touch);
+            this.panStart(offsetX, offsetY);
         }
+    }
+
+    /**
+     * @param {Touch} touch
+     * @return {number}
+     */
+    obtainTouchOffsetX(touch) {
+        // noinspection JSUnresolvedVariable (offsetLeft)
+        return touch.pageX - touch.target.offsetLeft;
+    }
+
+    /**
+     * @param {Touch} touch
+     * @return {number}
+     */
+    obtainTouchOffsetY(touch) {
+        // noinspection JSUnresolvedVariable (offsetTop)
+        return touch.pageY - touch.target.offsetTop;
     }
 
     /**
@@ -109,7 +129,9 @@ export default class Caparzo {
         event.preventDefault();
         if (this.isPanning) {
             const touch = event.touches[0];
-            this.panMove(touch.clientX, touch.clientY);
+            const offsetX = this.obtainTouchOffsetX(touch);
+            const offsetY = this.obtainTouchOffsetY(touch);
+            this.panMove(offsetX, offsetY);
         } else if (this.isPinching) {
             this.pinchMove(event);
         }
@@ -125,7 +147,7 @@ export default class Caparzo {
         this.initialScale = this.scale;
         this.initialTranslateX = this.translateX;
         this.initialTranslateY = this.translateY;
-        [this.initialClientX, this.initialClientY] = this.computeMeanTouchPoint(event);
+        [this.initialOffsetX, this.initialOffsetY] = this.computeMeanTouchPoint(event);
     }
 
     pinchEnd() {
@@ -138,9 +160,9 @@ export default class Caparzo {
     pinchMove(event) {
         const distance = this.computePinchDistance(event);
         const scalingFactor = distance / this.initialPinchDistance;
-        const [clientX, clientY] = this.computeMeanTouchPoint(event);
+        const [offsetX, offsetY] = this.computeMeanTouchPoint(event);
 
-        this.doScaling(clientX, clientY, scalingFactor);
+        this.doScaling(offsetX, offsetY, scalingFactor);
     }
 
     /**
@@ -150,8 +172,10 @@ export default class Caparzo {
     computeMeanTouchPoint(event) {
         const touch1 = event.touches[0];
         const touch2 = event.touches[1];
-        const hor = touch1.clientX + (touch2.clientX - touch1.clientX) / 2;
-        const ver = touch1.clientY + (touch2.clientY - touch1.clientY) / 2;
+        // noinspection JSUnresolvedVariable (offsetLeft)
+        const hor = touch1.pageX + (touch2.pageX - touch1.pageX) / 2 - touch1.target.offsetLeft;
+        // noinspection JSUnresolvedVariable (offsetTop)
+        const ver = touch1.pageY + (touch2.pageY - touch1.pageY) / 2 - touch1.target.offsetTop;
         return [hor, ver];
     }
 
@@ -162,30 +186,30 @@ export default class Caparzo {
     computePinchDistance(event) {
         const touch1 = event.touches[0];
         const touch2 = event.touches[1];
-        const hor = touch2.clientX - touch1.clientX;
-        const ver = touch2.clientY - touch1.clientY;
+        const hor = touch2.pageX - touch1.pageX;
+        const ver = touch2.pageY - touch1.pageY;
         return Math.hypot(hor, ver);
     }
 
     /**
-     * @param {Number} clientX
-     * @param {Number} clientY
+     * @param {Number} offsetX
+     * @param {Number} offsetY
      */
-    panStart(clientX, clientY) {
+    panStart(offsetX, offsetY) {
         this.isPanning = true;
-        this.previousClientX = clientX;
-        this.previousClientY = clientY;
+        this.previousOffsetX = offsetX;
+        this.previousOffsetY = offsetY;
     }
 
     panEnd() {
         this.isPanning = false;
     }
 
-    panMove(clientX, clientY) {
-        this.translateX += clientX - this.previousClientX;
-        this.translateY += clientY - this.previousClientY;
-        this.previousClientX = clientX;
-        this.previousClientY = clientY;
+    panMove(offsetX, offsetY) {
+        this.translateX += offsetX - this.previousOffsetX;
+        this.translateY += offsetY - this.previousOffsetY;
+        this.previousOffsetX = offsetX;
+        this.previousOffsetY = offsetY;
         this.transform();
     }
 
@@ -201,13 +225,13 @@ export default class Caparzo {
         this.initialScale = this.scale;
         this.initialTranslateX = this.translateX;
         this.initialTranslateY = this.translateY;
-        this.initialClientX = event.clientX;
-        this.initialClientY = event.clientY;
+        this.initialOffsetX = event.offsetX;
+        this.initialOffsetY = event.offsetY;
 
-        this.doScaling(event.clientX, event.clientY, scalingFactor);
+        this.doScaling(event.offsetX, event.offsetY, scalingFactor);
     }
 
-    doScaling(clientX, clientY, scalingFactor) {
+    doScaling(offsetX, offsetY, scalingFactor) {
         const previousScale = this.scale;
         this.scale = this.initialScale * scalingFactor;
 
@@ -218,8 +242,8 @@ export default class Caparzo {
         }
 
         if (this.scale !== previousScale) {  // avoid translating if has no effective scaling
-            this.translateX = (this.initialTranslateX - this.initialClientX) * scalingFactor + clientX;
-            this.translateY = (this.initialTranslateY - this.initialClientY) * scalingFactor + clientY;
+            this.translateX = (this.initialTranslateX - this.initialOffsetX) * scalingFactor + offsetX;
+            this.translateY = (this.initialTranslateY - this.initialOffsetY) * scalingFactor + offsetY;
         }
 
         // ToDo check if translation/scaling is the same as the previous state and avoid firing the callback if so
