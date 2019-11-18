@@ -14,11 +14,14 @@
             --background-color: white;
             --text-color: #293b44;
             --emphasis-color: #33a25b;
+
+        }
+        * {
+            box-sizing: border-box;
         }
         html, body {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
         }
         a, a:hover, a:active, a:visited {
             color: var(--emphasis-color);
@@ -67,9 +70,9 @@
             fill: var(--background-color);
         }
         canvas {
-            margin: 0 40px;
-            border: 1px solid #666;
-            border-radius: 2px;
+            border: 1px solid #72748c;
+            width: 100%;
+            height: 100%;
         }
     </style>
 
@@ -87,7 +90,13 @@
 <section id="main">
     <p>A lean JavaScript library with easy-to-use <em>pan & zoom</em> for <em>canvas</em> elements on both <em>mobile and desktop</em> platforms.</p>
 
-    <canvas id="canvas"></canvas>
+    <p>Here's an example of a canvas showing an image that you can pan & zoom freely:</p>
+
+    <div class="canvas-container">
+        <canvas id="image-canvas"></canvas>
+    </div>
+
+    <p>Caparzo is also <a href="https://github.com/luciopaiva/caparzo">open source</a>.</p>
 </section>
 
 <section id="footer">

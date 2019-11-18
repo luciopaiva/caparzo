@@ -1,21 +1,46 @@
 
 import Caparzo from "../caparzo.js";
 
-const TAU = Math.PI * 2;
+/**
+ * @param src
+ * @return {Promise<Image>}
+ */
+async function loadImage(src) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        const options = { once: true };
+        img.addEventListener("load", () => resolve(img), options);
+        img.addEventListener("error", reject, options);
+        img.src = src;
+    });
+}
 
-class Example {
-
+class ImageExample {
     constructor () {
-        this.width = 300;
-        this.height = 200;
+        this.initialize();
+    }
 
-        this.canvas = /** @type {HTMLCanvasElement} */ document.getElementById("canvas");
-        this.canvas.width = this.width;
-        this.canvas.height = this.height;
-        this.ctx = this.canvas.getContext("2d");
+    /** @return {void} */
+    async initialize() {
+        this.img = await loadImage("pvt-ryan.jpg");
 
-        Caparzo.apply(this.canvas, this.onCanvasRedraw.bind(this));
-        this.draw(this.ctx);
+        this.canvas = /** @type {HTMLCanvasElement} */ document.getElementById("image-canvas");
+        this.parent = this.canvas.parentElement;
+        window.addEventListener("resize", this.resize.bind(this));
+        this.resize();
+    }
+
+    resize() {
+        console.info("resizing...");
+
+        const rect = this.parent.getBoundingClientRect();
+        this.canvas.width = rect.width;
+        this.canvas.height = rect.height;
+
+        if (this.caparzo) {
+            this.caparzo.close();
+        }
+        this.caparzo = Caparzo.apply(this.canvas, this.onCanvasRedraw.bind(this));
     }
 
     /**
@@ -26,18 +51,20 @@ class Example {
      * @param {HTMLCanvasElement} canvas
      */
     onCanvasRedraw(scale, translateX, translateY, ctx, canvas) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.save();
         ctx.transform(scale, 0, 0, scale, translateX, translateY);
-        this.draw(ctx);
+        ctx.drawImage(this.img, 0, 0);
         ctx.restore();
     }
+}
 
-    draw(ctx = this.ctx) {
-        ctx.fillStyle = "red";
-        ctx.beginPath();
-        ctx.ellipse(this.width / 2, this.height / 2, 50, 50, 0, 0, TAU);
-        ctx.fill();
+class Example {
+
+    constructor () {
+        new ImageExample();
     }
 }
 
