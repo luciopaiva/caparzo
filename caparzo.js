@@ -4,7 +4,7 @@ const SCALE_DOWN_FACTOR = 0.8;
 const MAXIMUM_SCALE = 20;
 const MINIMUM_SCALE = 0.05;
 
-export default class PanAnZoom {
+export default class Caparzo {
 
     /**
      * @param {HTMLCanvasElement} canvasElement
@@ -266,9 +266,9 @@ export default class PanAnZoom {
      * @param {Function} transformCallback
      * @param {Number} [minimumScale]
      * @param {Number} [maximumScale]
-     * @return {PanAnZoom}
+     * @return {Caparzo}
      */
     static apply(canvasElement, transformCallback, minimumScale, maximumScale) {
-        return new PanAnZoom(canvasElement, transformCallback, minimumScale, maximumScale);
+        return new Caparzo(canvasElement, transformCallback, minimumScale, maximumScale);
     }
 }

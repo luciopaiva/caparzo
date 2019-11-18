@@ -9,11 +9,11 @@ Works for both desktop and mobile applications.
 
 Simply import it into your script:
 
-    import PanAnZoom from "./pananzoom.js";
+    import Caparzo from "./caparzo.js";
 
 And then apply it to your canvas element:
 
-    PanAnZoom.apply(this.canvas, (scale, translateX, translateY, ctx, canvas) => {
+    Caparzo.apply(this.canvas, (scale, translateX, translateY, ctx, canvas) => {
         // this is what you'd likely do whenver the callback is fired:
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.save();

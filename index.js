@@ -1,5 +1,5 @@
 
-import PanAnZoom from "./pananzoom.js";
+import Caparzo from "./caparzo.js";
 
 const TAU = Math.PI * 2;
 
@@ -14,7 +14,7 @@ class Example {
         this.canvas.height = this.height;
         this.ctx = this.canvas.getContext("2d");
 
-        PanAnZoom.apply(this.canvas, this.onCanvasRedraw.bind(this));
+        Caparzo.apply(this.canvas, this.onCanvasRedraw.bind(this));
         this.draw(this.ctx);
     }
 
