@@ -244,10 +244,9 @@ export default class Caparzo {
         if (this.scale !== previousScale) {  // avoid translating if has no effective scaling
             this.translateX = (this.initialTranslateX - this.initialOffsetX) * scalingFactor + offsetX;
             this.translateY = (this.initialTranslateY - this.initialOffsetY) * scalingFactor + offsetY;
-        }
 
-        // ToDo check if translation/scaling is the same as the previous state and avoid firing the callback if so
-        this.transform();
+            this.transform();
+        }
     }
 
     transform() {
