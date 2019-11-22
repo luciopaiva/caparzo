@@ -53,6 +53,7 @@ export default class MandelbrotExample {
         this.canvas = /** @type {HTMLCanvasElement} */ document.getElementById("mandelbrot-canvas");
         this.parent = this.canvas.parentElement;
         window.addEventListener("resize", this.resize.bind(this));
+        this.previousWidth = NaN;
         this.resize();
     }
 
@@ -60,23 +61,28 @@ export default class MandelbrotExample {
         const CANVAS_RATIO = 9 / 16;
 
         const rect = this.parent.getBoundingClientRect();
-        this.canvas.width = Math.ceil(rect.width);
-        this.canvas.height = Math.ceil(rect.width * CANVAS_RATIO);
-        this.ctx = this.canvas.getContext("2d");
-        this.imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-        this.buffer = new Uint32Array(this.imageData.data.buffer);
 
-        this.mandelbrot();
+        if (rect.width !== this.previousWidth) {  // recompute only if there was an actual change
+            this.previousWidth = rect.width;
 
-        // for (let i = 0; i < this.buffer.length; i++) {
-        //     this.buffer[i] = this.bgColor;
-        // }
-        // this.ctx.putImageData(this.imageData, 0, 0);
+            this.canvas.width = Math.ceil(rect.width);
+            this.canvas.height = Math.ceil(rect.width * CANVAS_RATIO);
+            this.ctx = this.canvas.getContext("2d");
+            this.imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+            this.buffer = new Uint32Array(this.imageData.data.buffer);
 
-        // if (this.caparzo) {
-        //     this.caparzo.close();
-        // }
-        // this.caparzo = Caparzo.apply(this.canvas, this.onCanvasRedraw.bind(this));
+            this.mandelbrot();
+
+            // for (let i = 0; i < this.buffer.length; i++) {
+            //     this.buffer[i] = this.bgColor;
+            // }
+            // this.ctx.putImageData(this.imageData, 0, 0);
+
+            // if (this.caparzo) {
+            //     this.caparzo.close();
+            // }
+            // this.caparzo = Caparzo.apply(this.canvas, this.onCanvasRedraw.bind(this));
+        }
     }
 
     mandelbrot() {
@@ -84,14 +90,15 @@ export default class MandelbrotExample {
 
         this.buffer.fill(this.bgColor);
 
-        this.drawMandelbrot2();
+        this.drawMandelbrot();
 
         this.ctx.putImageData(this.imageData, 0, 0);
 
-        console.info(performance.now() - start);
+        const elapsed = Math.round(performance.now() - start);
+        console.info(`Took ${elapsed} ms.`);
     }
 
-    drawMandelbrot2() {
+    drawMandelbrot() {
         const width = this.canvas.width;
         const height = this.canvas.height;
 
