@@ -119,7 +119,6 @@ class MandelbrotExample {
 
     resize() {
         const CANVAS_RATIO = 9 / 16;
-        // const CANVAS_RATIO = 16 / 9;
 
         const rect = this.parent.getBoundingClientRect();
         this.canvas.width = Math.ceil(rect.width);
@@ -144,40 +143,13 @@ class MandelbrotExample {
     mandelbrot() {
         const start = performance.now();
 
-        // const graph = new DOMRect(-2, 1.2, 3, 2.4);
-        // this.obtainFittingScale(graph, this.canvas.getBoundingClientRect());
-
         this.buffer.fill(this.bgColor);
 
-        // this.drawMandelbrot();
         this.drawMandelbrot2();
-        // this.oldMandelbrot();
 
         this.ctx.putImageData(this.imageData, 0, 0);
 
         console.info(performance.now() - start);
-    }
-
-    drawMandelbrot() {
-        const width = this.canvas.width;
-        const height = this.canvas.height;
-
-        const input = new RectRef(0, 0, width, height);
-        const output = new RectRef(-2, -1.2, 0.7, 1.2);
-        this.resizeModelDomain(output, input);
-
-        for (let y = 0; y < height; y++) {
-            input.y = y;
-            for (let x = 0; x < width; x++) {
-                input.x = x;
-
-                this.canvasToModelCoordinates(input, output);
-
-                if (this.checkMandelbrot(output.x, output.y)) {
-                    this.buffer[width * y + x] = this.fgColor;
-                }
-            }
-        }
     }
 
     drawMandelbrot2() {
@@ -226,44 +198,6 @@ class MandelbrotExample {
         }
 
         return true;
-    }
-
-    oldMandelbrot() {
-        const width = this.canvas.width;
-        const height = this.canvas.height;
-
-        const minRe = -2;
-        const maxRe = 1;
-        const minIm = -1.2;
-        const maxIm = minIm + (maxRe - minRe) * height / width;
-        const reFactor = (maxRe - minRe) / (width - 1);
-        const imFactor = (maxIm - minIm) / (height - 1);
-        const maxIterations = 30;
-
-        for (let y = 0; y < height; y++) {
-            const cIm = maxIm - y * imFactor;
-            for (let x = 0; x < width; x++) {
-                const cRe = minRe + x * reFactor;
-
-                let zRe = cRe;
-                let zIm = cIm;
-                let isInside = true;
-
-                for (let n = 0; n < maxIterations; n++) {
-                    const zRe2 = zRe * zRe;
-                    const zIm2 = zIm * zIm;
-                    if (zRe2 + zIm2 > 4) {
-                        isInside = false;
-                        break;
-                    }
-                    zIm = 2 * zRe * zIm + cIm;
-                    zRe = zRe2 - zIm2 + cRe;
-                }
-                if (isInside) {
-                    this.buffer[width * y + x] = this.fgColor;
-                }
-            }
-        }
     }
 
     /**
